@@ -3,6 +3,7 @@ import './index.css';
 import { analyzeCandidates } from './services/api';
 import logoImg from '../logo/logo.png';
 import { Sparkles, UploadCloud, FileText, CheckCircle2, AlertTriangle, ArrowRight, Zap, Target, LayoutDashboard, X, FileIcon } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 function App() {
   const [jobDescription, setJobDescription] = useState('');
@@ -74,6 +75,18 @@ function App() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getScoreColor = (score) => {
+    if (score >= 70) return '#22c55e';
+    if (score >= 40) return '#f59e0b';
+    return '#ef4444';
+  };
+
+  const getScoreLabel = (score) => {
+    if (score >= 70) return 'Strong Match';
+    if (score >= 40) return 'Partial Match';
+    return 'Weak Match';
   };
 
   return (
@@ -279,6 +292,30 @@ function App() {
             {rankings && (
               <div className="results-section">
                 <h2 className="text-gradient" style={{ marginTop: '2rem', marginBottom: '2rem' }}>Candidate Dashboard</h2>
+
+                {/* Comparison Bar Chart */}
+                <div className="glass-panel fade-in" style={{ marginBottom: '2rem', padding: '1.5rem' }}>
+                  <h3 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem' }}>Candidate Score Comparison</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={[...rankings].sort((a, b) => b.score - a.score)} margin={{ top: 10, right: 20, left: 0, bottom: 60 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                      <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} angle={-30} textAnchor="end" interval={0} />
+                      <YAxis domain={[0, 100]} tick={{ fill: '#94a3b8' }} />
+                      <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }} formatter={(value) => [`${value}/100`, 'Score']} />
+                      <Bar dataKey="score" radius={[6, 6, 0, 0]}>
+                        {[...rankings].sort((a, b) => b.score - a.score).map((entry, index) => (
+                          <Cell key={index} fill={getScoreColor(entry.score)} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', marginTop: '1rem' }}>
+                    <span style={{ color: '#22c55e', fontSize: '0.85rem' }}>● Strong Match (70+)</span>
+                    <span style={{ color: '#f59e0b', fontSize: '0.85rem' }}>● Partial Match (40-69)</span>
+                    <span style={{ color: '#ef4444', fontSize: '0.85rem' }}>● Weak Match (below 40)</span>
+                  </div>
+                </div>
+
                 <div className="rankings-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) minmax(300px, 1fr)', gap: '2rem' }}>
                   {rankings.map((candidate, index) => (
                     <div key={candidate.id || index} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -291,9 +328,13 @@ function App() {
                             <h3 className="candidate-name">{candidate.name || `Candidate ${index + 1}`}</h3>
                           </div>
                           <div className="score-badge glass-panel-small" style={{ textAlign: 'right' }}>
-                            <div className="text-gradient" style={{ fontSize: '1.25rem', fontWeight: 'bold', display: 'block' }}>{candidate.score}/100</div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Perfect Match Score</div>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', display: 'block', color: getScoreColor(candidate.score) }}>{candidate.score}/100</div>
+                            <div style={{ fontSize: '0.75rem', color: getScoreColor(candidate.score) }}>{getScoreLabel(candidate.score)}</div>
                           </div>
+                        </div>
+                        {/* Score Progress Bar */}
+                        <div style={{ margin: '0.75rem 0', background: 'rgba(255,255,255,0.1)', borderRadius: '999px', height: '8px', overflow: 'hidden' }}>
+                          <div style={{ width: `${candidate.score}%`, height: '100%', background: getScoreColor(candidate.score), borderRadius: '999px', transition: 'width 1s ease' }} />
                         </div>
 
                         <div className="skills-analysis">
