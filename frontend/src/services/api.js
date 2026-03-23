@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1'; // Assuming FastAPI default
+const API_BASE_URL = 'https://resume-screening-system-6-11ai.onrender.com/api/v1';
 
 /**
  * Uploads a job description and resumes to the backend for analysis.
